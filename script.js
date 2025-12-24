@@ -1,6 +1,6 @@
 // Configurações da API
 const API_BASE_URL = 'https://api.cnpja.com/office';
-const API_KEY = '5c72ed84-326f-4a88-867c-ca6b7edd5dc7-63cd08e5-fb83-4112-b0c8-7a9e8a1d72c2';
+const API_KEY = 'a8091b70-034e-421a-afa1-258881b9b8a1-a7849fc0-5f81-4c56-84e8-4264af84f98f';
 
 // Elementos do DOM
 const searchForm = document.getElementById('searchForm' );
@@ -57,7 +57,7 @@ async function handleSearch(e) {
             'founded.gte': dataInicioISO,
             'founded.lte': dataFimISO,
             'company.simei.optant.eq': 'true', // Filtro MEI reativado
-            'limit': '40' // Aumentado o limite para buscar mais resultados
+            'limit': '60' // Aumentado o limite para buscar mais resultados
         });
 
         const url = `${API_BASE_URL}?${params.toString()}`;
@@ -496,6 +496,16 @@ function isStandardMeiName(empresa) {
     return regex.test(razaoSocial);
 }
 
+// Função de filtro para emails .com.br
+function isNotComBrEmail(empresa) {
+    const email = extractEmail(empresa);
+    if (email === 'N/A') {
+        return true; // Mantém se não houver email
+    }
+    // Retorna true se o email NÃO terminar em .com.br (case-insensitive)
+    return !email.toLowerCase().endsWith('.com.br');
+}
+
 // Função para exportar telefones
 function exportPhones() {
     if (allResults.length === 0) {
@@ -505,6 +515,7 @@ function exportPhones() {
 
     const phones = allResults
         .filter(isStandardMeiName) // Aplica o filtro de Razão Social Padrão MEI
+        .filter(isNotComBrEmail) // NOVO: Aplica o filtro para excluir emails .com.br
         .map(empresa => {
             const rawPhone = extractPhoneRaw(empresa);
             // Retorna o formato Manychat (+55...) sem o símbolo '+'
