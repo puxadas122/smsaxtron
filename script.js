@@ -57,7 +57,7 @@ async function handleSearch(e) {
             'founded.gte': dataInicioISO,
             'founded.lte': dataFimISO,
             'company.simei.optant.eq': 'true', // Filtro MEI reativado
-            'limit': '300' // Aumentado o limite para buscar mais resultados
+            'limit': '40' // Aumentado o limite para buscar mais resultados
         });
 
         const url = `${API_BASE_URL}?${params.toString()}`;
@@ -485,6 +485,17 @@ function exportEmails() {
     alert(`Exportação de emails concluída! ${emails.length} email(s) exportado(s) para "emails_mei_export.txt".`);
 }
 
+// Função de filtro para Razão Social Padrão MEI
+function isStandardMeiName(empresa) {
+    const razaoSocial = empresa.company?.name || '';
+    // O padrão de razão social para MEI é geralmente o nome completo do empreendedor,
+    // ou o formato que inclui o CNPJ raiz (XX.XXX.XXX) seguido pelo nome.
+    // O regex abaixo (já usado em exportManychatContacts) busca o padrão CNPJ raiz + nome.
+    const regex = /^\d{2}\.\d{3}\.\d{3}\s+/; // Ex: "64.091.174 Nome Completo"
+    
+    return regex.test(razaoSocial);
+}
+
 // Função para exportar telefones
 function exportPhones() {
     if (allResults.length === 0) {
@@ -493,6 +504,7 @@ function exportPhones() {
     }
 
     const phones = allResults
+        .filter(isStandardMeiName) // Aplica o filtro de Razão Social Padrão MEI
         .map(empresa => {
             const rawPhone = extractPhoneRaw(empresa);
             // Retorna o formato Manychat (+55...) sem o símbolo '+'
