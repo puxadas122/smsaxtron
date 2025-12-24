@@ -279,22 +279,11 @@ function exportManychatContacts() {
 
     const csvContent = [header, ...dataLines].join('\n');
     
-    // Cria um Blob para download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    // Usa a função genérica para exportação mobile-friendly
+    handleExport(csvContent, 'mei_manychat_export.csv', 'text/csv;charset=utf-8');
     
-    // Cria um link temporário para iniciar o download
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'mei_manychat_export.csv';
-    document.body.appendChild(a);
-    a.click();
-    
-    // Limpa o link temporário e o URL do objeto
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    alert(`Exportação para Manychat concluída! ${dataLines.length} contato(s) exportado(s) para "mei_manychat_export.csv".`);
+    // O alerta de sucesso agora está dentro de handleExport/downloadFallback
+    // alert(`Exportação para Manychat concluída! ${dataLines.length} contato(s) exportado(s) para "mei_manychat_export.csv".`); // Removido para evitar duplicidade de alerta
 }
 
 // NOVO: Função de utilidade para extrair o telefone no formato RAW (+55DDDNUMERO)
@@ -431,22 +420,56 @@ function exportData() {
 
     const csvContent = [header, ...dataLines].join('\n');
     
-    // Cria um Blob para download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    // Usa a função genérica para exportação mobile-friendly
+    handleExport(csvContent, 'empresas_mei_export.csv', 'text/csv;charset=utf-8');
+    
+    // O alerta de sucesso agora está dentro de handleExport/downloadFallback
+    // alert(`Exportação concluída! ${allResults.length} registro(s) exportado(s) para "empresas_mei_export.csv".`); // Removido para evitar duplicidade de alerta
+}
+
+// Função genérica para lidar com a exportação/compartilhamento de arquivos
+function handleExport(content, filename, mimeType) {
+    // 1. Tenta usar a Web Share API (melhor UX em mobile)
+    if (navigator.share) {
+        // Para arquivos de texto simples, podemos usar o Web Share API
+        if (mimeType.startsWith('text/')) {
+            // Cria um Blob para obter um arquivo temporário para o Web Share API
+            const file = new File([content], filename, { type: mimeType });
+            
+            navigator.share({
+                files: [file],
+                title: `Exportação de Contatos - ${filename}`,
+                text: `Arquivo de contatos exportado em ${new Date().toLocaleDateString('pt-BR')}.`
+            }).then(() => {
+                alert(`Compartilhamento de ${filename} iniciado com sucesso!`);
+            }).catch((error) => {
+                // Se o compartilhamento falhar (ex: usuário cancelou, ou o browser não suporta o compartilhamento de arquivos)
+                console.error('Erro no compartilhamento via Web Share API:', error);
+                // Tenta o download tradicional como fallback
+                downloadFallback(content, filename, mimeType);
+            });
+            return;
+        }
+    }
+
+    // 2. Fallback: Download tradicional via Blob
+    downloadFallback(content, filename, mimeType);
+}
+
+function downloadFallback(content, filename, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     
-    // Cria um link temporário para iniciar o download
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'empresas_mei_export.csv';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     
-    // Limpa o link temporário e o URL do objeto
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    alert(`Exportação concluída! ${allResults.length} registro(s) exportado(s) para "empresas_mei_export.csv".`);
+    alert(`Exportação concluída! O arquivo "${filename}" foi baixado.`);
 }
 
 // Função para exportar emails
@@ -467,22 +490,11 @@ function exportEmails() {
 
     const emailsText = emails.join('\n');
     
-    // Cria um Blob para download
-    const blob = new Blob([emailsText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    // Usa a função genérica para exportação mobile-friendly
+    handleExport(emailsText, 'emails_mei_export.txt', 'text/plain;charset=utf-8');
     
-    // Cria um link temporário para iniciar o download
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'emails_mei_export.txt';
-    document.body.appendChild(a);
-    a.click();
-    
-    // Limpa o link temporário e o URL do objeto
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    alert(`Exportação de emails concluída! ${emails.length} email(s) exportado(s) para "emails_mei_export.txt".`);
+    // O alerta de sucesso agora está dentro de handleExport/downloadFallback
+    // alert(`Exportação de emails concluída! ${emails.length} email(s) exportado(s) para "emails_mei_export.txt".`); // Removido para evitar duplicidade de alerta
 }
 
 // Função de filtro para Razão Social Padrão MEI
@@ -530,22 +542,11 @@ function exportPhones() {
 
     const phonesText = phones.join('\n');
     
-    // Cria um Blob para download
-    const blob = new Blob([phonesText], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    // Usa a função genérica para exportação mobile-friendly
+    handleExport(phonesText, 'telefones_mei_export.txt', 'text/plain;charset=utf-8');
     
-    // Cria um link temporário para iniciar o download
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'telefones_mei_export.txt';
-    document.body.appendChild(a);
-    a.click();
-    
-    // Limpa o link temporário e o URL do objeto
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    alert(`Exportação de telefones concluída! ${phones.length} telefone(s) exportado(s) para "telefones_mei_export.txt".`);
+    // O alerta de sucesso agora está dentro de handleExport/downloadFallback
+    // alert(`Exportação de telefones concluída! ${phones.length} telefone(s) exportado(s) para "telefones_mei_export.txt".`); // Removido para evitar duplicidade de alerta
 }
 
 // Função para exibir os resultados na tabela
